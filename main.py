@@ -132,16 +132,16 @@ if __name__ == "__main__":
             if gemini_text:
                 print(f"Teks dari Gemini: {gemini_text}")
 
-                # --- DIUBAH --- Membuat string hashtag dari SEMUA tren yang ditemukan
-                # untuk jangkauan yang lebih luas
-                hashtags_string = " ".join([f"#{trend.replace(' ', '')}" for trend in top_trends])
-                print(f"Hashtag yang dibuat (dari 4 tren): {hashtags_string}")
+                # --- MODIFIKASI DI SINI ---
+                # Membuat string hashtag hanya dari SATU tren yang dipilih.
+                hashtags_string = f"#{selected_trend.replace(' ', '')}"
+                print(f"Hashtag yang dibuat (dari 1 tren): {hashtags_string}")
                 
                 # Membuat URL gambar dari tren yang dipilih untuk konten
                 image_url = f"https://tse1.mm.bing.net/th?q={urllib.parse.quote(selected_trend)}"
                 print(f"URL Gambar: {image_url}")
 
-                # Menggabungkan teks AI dan semua hashtag
+                # Menggabungkan teks AI dan hashtag tunggal
                 final_post = f"{gemini_text}\n\n{hashtags_string}"
                 
                 print("--- POSTINGAN FINAL ---")
