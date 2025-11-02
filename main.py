@@ -8,19 +8,34 @@ import time
 # --- FUNGSI 1: MENDAPATKAN POSTINGAN DARI URL ---
 # (TETAP SAMA)
 def get_random_post_text(url="https://raw.githubusercontent.com/Buzz-News/xdate/main/post.txt"):
+    """
+    Membaca konten dari URL, memisahkan postingan berdasarkan '---',
+    dan memilih satu blok postingan utuh secara acak.
+
+    Args:
+        url (str): URL file .txt yang berisi postingan.
+
+    Returns:
+        str: Sebuah string teks postingan.
+             Mengembalikan None jika URL tidak bisa diakses atau kosong.
+    """
     try:
         print(f"Mengambil data postingan dari: {url}")
         response = requests.get(url)
-        response.raise_for_status() 
+        response.raise_for_status() # Cek jika ada error HTTP
         
         content = response.text
+
+        # Memisahkan postingan berdasarkan '---' dan membersihkan spasi/baris baru
         posts = [post.strip() for post in content.split('---') if post.strip()]
 
         if not posts:
             print("Tidak ada postingan yang ditemukan dari URL.")
             return None
 
+        # Memilih satu blok postingan secara acak
         random_block = random.choice(posts)
+        # Mengembalikan seluruh blok sebagai teks postingan
         return random_block.strip()
 
     except requests.exceptions.RequestException as e:
@@ -30,13 +45,20 @@ def get_random_post_text(url="https://raw.githubusercontent.com/Buzz-News/xdate/
         print(f"Terjadi error saat memproses data dari URL: {e}")
         return None
 
-# --- (FUNGSI BARU): MENDAPATKAN URL GAMBAR RANDOM DARI FOLDER GITHUB ---
+# --- FUNGSI BARU (DARI SCRIPT ASLI): MENDAPATKAN URL GAMBAR RANDOM ---
 # (DIMODIFIKASI: Menambahkan Otentikasi GITHUB_TOKEN)
 def get_random_image_url_from_folder(api_url="https://api.github.com/repos/Buzz-News/xdate/contents/date"):
     """
     Mengambil daftar file dari folder di GitHub via API,
     memfilter file gambar, dan memilih satu URL gambar secara acak.
     (Versi ini menggunakan GITHUB_TOKEN untuk otentikasi)
+
+    Args:
+        api_url (str): URL GitHub API untuk folder 'contents'.
+
+    Returns:
+        str: Sebuah URL download gambar.
+             Mengembalikan None jika terjadi error atau tidak ada gambar.
     """
     try:
         print(f"Mengambil data gambar dari GitHub API: {api_url}")
@@ -64,8 +86,11 @@ def get_random_image_url_from_folder(api_url="https://api.github.com/repos/Buzz-
             return None
 
         image_urls = []
+        # Loop melalui setiap item di folder
         for file in files:
+            # Pastikan itu adalah file (bukan sub-folder)
             if file['type'] == 'file':
+                # Ambil 'download_url' yang merupakan link langsung ke file mentah
                 dl_url = file.get('download_url')
                 if dl_url and dl_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
                     image_urls.append(dl_url)
@@ -74,6 +99,7 @@ def get_random_image_url_from_folder(api_url="https://api.github.com/repos/Buzz-
             print("Tidak ada file gambar (.png, .jpg, .jpeg, .gif, .webp) yang ditemukan di folder.")
             return None
 
+        # Pilih satu URL gambar secara acak dari daftar
         chosen_image_url = random.choice(image_urls)
         print(f"Memilih gambar acak: {chosen_image_url}")
         return chosen_image_url
@@ -86,7 +112,7 @@ def get_random_image_url_from_folder(api_url="https://api.github.com/repos/Buzz-
         return None
 
 # --- FUNGSI 2: MENGAMBIL KEYWORD TRENDING ---
-# (TETAP SAMA, TAPI INGAT INI MASIH RAPUH)
+# (DIMODIFIKASI: Menambahkan User-Agent untuk menghindari error 403)
 def get_trending_keywords(url="https://getdaytrends.com/indonesia/", count=5):
     """
     Mengambil keyword trending teratas dari URL yang diberikan.
@@ -94,21 +120,31 @@ def get_trending_keywords(url="https://getdaytrends.com/indonesia/", count=5):
     """
     try:
         print(f"Mengambil trending keywords dari: {url}")
-        response = requests.get(url)
-        response.raise_for_status()
+
+        # TAMBAHKAN INI: Header User-Agent untuk menyamar sebagai browser
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # MODIFIKASI INI: Tambahkan 'headers=headers' ke dalam request
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Akan memunculkan error jika status code bukan 200
 
         soup = BeautifulSoup(response.text, 'html.parser')
+        
         trend_table = soup.find('table') 
         
         if not trend_table:
             print("Tidak dapat menemukan tabel tren (<table>) di halaman.")
             return []
 
+        # Ambil semua link di dalam tabel
         trends_links = trend_table.find_all('a')
         
         keywords = []
         for trend in trends_links:
             text = trend.text
+            # Filter link "View details" atau link tidak relevan lainnya
             if text and text != "View details" and not text.isdigit():
                 keywords.append(text)
             
@@ -127,8 +163,15 @@ def get_trending_keywords(url="https://getdaytrends.com/indonesia/", count=5):
 
 
 # --- FUNGSI 3: MEMPOSTING KONTEN KE X.COM ---
-# (TETAP SAMA)
+# (TETAP SAMA, TIDAK DIUBAH)
 def post_to_x(text_to_post, image_url=None):
+    """
+    Memposting teks dan (opsional) gambar ke akun X.com menggunakan API.
+
+    Args:
+        text_to_post (str): Teks yang akan dijadikan tweet.
+        image_url (str, optional): URL gambar yang akan diunggah.
+    """
     try:
         # Otentikasi
         auth = tweepy.OAuth1UserHandler(
@@ -148,6 +191,7 @@ def post_to_x(text_to_post, image_url=None):
         if image_url:
             print(f"Mengunduh gambar dari: {image_url}")
             filename = 'temp_image.jpg'
+            # Menambahkan User-Agent untuk menghindari blokir (opsional tapi disarankan)
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(image_url, stream=True, headers=headers)
 
@@ -184,6 +228,7 @@ if __name__ == "__main__":
     # Penjadwalan sekarang diatur sepenuhnya oleh file .yml
     print("Memulai skrip posting (tanpa penundaan acak).")
 
+
     print("="*45)
     print("Memulai proses auto-posting ke X.com...")
     print("="*45)
@@ -201,6 +246,7 @@ if __name__ == "__main__":
         print("Langkah 3: Mengambil trending keywords...")
         trending_keywords = get_trending_keywords()
         if trending_keywords:
+            # Membersihkan keyword (menghilangkan spasi) dan menambahkan #
             hashtags = " ".join([f"#{keyword.replace(' ', '')}" for keyword in trending_keywords])
             post_text += f"\n\n{hashtags}"
 
