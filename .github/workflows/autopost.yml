@@ -1,37 +1,63 @@
-name: X Auto-Posting
+# Nama workflow yang akan muncul di tab "Actions"
+name: Auto Post to X
 
+# Pemicu workflow
 on:
-  workflow_dispatch: # Tombol untuk menjalankan manual (opsional)
+  # 1. 'workflow_dispatch' memungkinkan Anda menjalankan workflow ini secara manual 
+  #    dari tab "Actions" di GitHub.
+  workflow_dispatch:
+  
+  # 2. 'schedule' menjalankan workflow secara otomatis
   schedule:
-    # Menjalankan skrip setiap hari pukul 12:00 UTC (19:00 WIB)
-    # Skrip python di bawah ini akan menangani penundaan acak
-    - cron: '0 12 * * *'
+    # Menjalankan pada pukul 14:00 UTC setiap hari.
+    # 14:00 UTC = 21:00 WIB (Jam 9 malam)
+    # Ini sesuai dengan permintaan Anda (antara 19:00 - 23:00 WIB).
+    - cron: '0 14 * * *'
 
+# Daftar pekerjaan (jobs) yang akan dijalankan
 jobs:
-  autopost:
+  # Satu-satunya pekerjaan yang kita miliki bernama 'post'
+  post:
+    # REKOMENDASI PENTING: Menambahkan 'permissions'
+    # Ini memberikan GITHUB_TOKEN izin untuk MEMBACA isi repositori.
+    # Script 'main.py' yang diperbarui akan menggunakan token ini
+    # untuk mengakses API GitHub secara terotentikasi saat mengambil URL gambar,
+    # sehingga menghindari "rate limit" (penyebab error).
+    permissions:
+      contents: read
+
+    # Menjalankan di server Ubuntu terbaru
     runs-on: ubuntu-latest
+
+    # Langkah-langkah yang akan dieksekusi
     steps:
-      - name: 1. Check out repositori
+      # 1. Mengunduh (checkout) kode dari repositori Anda
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: 2. Siapkan Python
+      # 2. Menyiapkan lingkungan Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # Anda bisa ganti versinya jika perlu
+          python-version: '3.10' # Anda bisa ganti versi jika perlu
 
-      - name: 3. Install dependencies
+      # 3. Menginstal dependensi (dari requirements.txt)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # Skrip Anda menggunakan tweepy, beautifulsoup4, dan requests.
-        # Pastikan file requirements.txt Anda ada di repo.
-
-      - name: 4. Jalankan Skrip Auto-Post
-        # Rahasia API harus disimpan di "Settings > Secrets and variables > Actions"
+          pip install -r requirements.txt
+          
+      # 4. Menjalankan script Python Anda
+      - name: Run Auto Post Script
         env:
+          # Mengambil semua 'secrets' yang telah Anda simpan di Pengaturan GitHub
+          # dan memberikannya ke script Python sebagai environment variables
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          
+          # Ini adalah token yang diizinkan oleh blok 'permissions' di atas
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python main.py
