@@ -37,13 +37,6 @@ def get_random_image_url_from_folder(api_url="https://api.github.com/repos/Buzz-
     Mengambil daftar file dari folder di GitHub via API,
     memfilter file gambar, dan memilih satu URL gambar secara acak.
     (Versi ini menggunakan GITHUB_TOKEN untuk otentikasi)
-
-    Args:
-        api_url (str): URL GitHub API untuk folder 'contents'.
-
-    Returns:
-        str: Sebuah URL download gambar.
-             Mengembalikan None jika terjadi error atau tidak ada gambar.
     """
     try:
         print(f"Mengambil data gambar dari GitHub API: {api_url}")
@@ -187,8 +180,8 @@ def post_to_x(text_to_post, image_url=None):
 if __name__ == "__main__":
 
     # --- LOGIKA PENUNDA WAKTU DIHAPUS ---
-    # Penjadwalan harus dilakukan di file .github/workflows/autopost.yml
-    # Hapus blok 'time.sleep' dari sini.
+    # Penundaan waktu 'time.sleep' yang menyebabkan "loading lama" telah dihapus.
+    # Penjadwalan sekarang diatur sepenuhnya oleh file .yml
     print("Memulai skrip posting (tanpa penundaan acak).")
 
     print("="*45)
