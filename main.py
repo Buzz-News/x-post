@@ -121,12 +121,12 @@ def get_trending_keywords(url="https://getdaytrends.com/indonesia/", count=5):
     try:
         print(f"Mengambil trending keywords dari: {url}")
 
-        # TAMBAHKAN INI: Header User-Agent untuk menyamar sebagai browser
+        # Header User-Agent untuk menyamar sebagai browser
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
-        # MODIFIKASI INI: Tambahkan 'headers=headers' ke dalam request
+        # Tambahkan 'headers=headers' ke dalam request
         response = requests.get(url, headers=headers)
         response.raise_for_status()  # Akan memunculkan error jika status code bukan 200
 
@@ -224,10 +224,7 @@ def post_to_x(text_to_post, image_url=None):
 if __name__ == "__main__":
 
     # --- LOGIKA PENUNDA WAKTU DIHAPUS ---
-    # Penundaan waktu 'time.sleep' yang menyebabkan "loading lama" telah dihapus.
-    # Penjadwalan sekarang diatur sepenuhnya oleh file .yml
     print("Memulai skrip posting (tanpa penundaan acak).")
-
 
     print("="*45)
     print("Memulai proses auto-posting ke X.com...")
@@ -245,10 +242,14 @@ if __name__ == "__main__":
         # Langkah 3: Mengambil dan menambahkan trending keywords
         print("Langkah 3: Mengambil trending keywords...")
         trending_keywords = get_trending_keywords()
+        
         if trending_keywords:
-            # Membersihkan keyword (menghilangkan spasi) dan menambahkan #
-            hashtags = " ".join([f"#{keyword.replace(' ', '')}" for keyword in trending_keywords])
-            post_text += f"\n\n{hashtags}"
+            # === PERUBAHAN DI SINI ===
+            # Mengubah format dari "#Keyword" menjadi "Keyword Apa Adanya",
+            # dipisahkan oleh baris baru agar rapi.
+            keywords_list_string = "\n".join(trending_keywords)
+            post_text += f"\n\n{keywords_list_string}"
+            # === AKHIR PERUBAHAN ===
 
         print("\n--- KONTEN DIPILIH ---")
         print("Teks Postingan:")
